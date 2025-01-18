@@ -1,6 +1,6 @@
 # CI/CD Configurations
 
-This repository contains the configuration files and scripts to set up a robust CI/CD pipeline. The pipeline automates building, testing, and deploying applications to an cloud instance.
+This repository contains the configuration files and scripts to set up a robust CI/CD pipeline. The pipeline automates building, testing, and deploying applications to a cloud instance.
 
 ## Repository Structure
 
@@ -10,6 +10,7 @@ This repository contains the configuration files and scripts to set up a robust 
 ├── dockerfiles           # Docker-related configurations
 └── README.md             # Documentation
 ```
+<p align="center"><a href="https://ibb.co/7N6gCjS"><img src="https://i.ibb.co/7N6gCjS/1-O76-HIkm-Ab-ack-Q94h-UHMPw.png" alt="1-O76-HIkm-Ab-ack-Q94h-UHMPw" border="0"></a></p>
 
 ## Key Features
 
@@ -21,7 +22,7 @@ This repository contains the configuration files and scripts to set up a robust 
 
 Before setting up this pipeline, ensure you have:
 
-1. A Cloud Provider account with a cloud instance configured.
+1. A cloud provider account with a cloud instance configured.
 2. Docker installed on your local machine and a cloud instance.
 3. Necessary environment variables configured such as:
    - `CLOUD_RESOURCE_ACCESS_KEY_ID`
@@ -49,6 +50,6 @@ This workflow:
 
 ### Author
 
-Implemented by [Sadeesha Perera](https://github.com/SadeeshaPerera).
+Implemented by [Sadeesha Perera](https://github.com/SadeeshaPerera)
 
 For questions or feedback, feel free to reach out!
