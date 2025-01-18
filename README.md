@@ -10,7 +10,7 @@ This repository contains the configuration files and scripts to set up a robust 
 ├── dockerfiles           # Docker-related configurations
 └── README.md             # Documentation
 ```
-<p align="center"><a href="https://ibb.co/7N6gCjS"><img src="https://i.ibb.co/7N6gCjS/1-O76-HIkm-Ab-ack-Q94h-UHMPw.png" alt="1-O76-HIkm-Ab-ack-Q94h-UHMPw" border="0"></a></p>
+<p align="center"><a href="https://ibb.co/kgdF9Vf"><img src="https://i.ibb.co/LzGfJDW/CICD-Pipeline-Demystifying-The-Complexities-1.png" alt="CICD-Pipeline-Demystifying-The-Complexities-1" border="0"></a></p>
 
 ## Key Features
 
