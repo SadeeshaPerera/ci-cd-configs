@@ -1,0 +1,60 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    docker:
+      - image: cimg/base:2022.09
+    resource_class: medium
+    working_directory: ~/project
+
+jobs:
+  build:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login to DockerHub
+          command: |
+            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build -t $DOCKER_USERNAME/$DOCKER_IMAGE_NAME .
+      - run:
+          name: Push Docker Image
+          command: |
+            docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME
+#comment
+  deploy:
+    executor: docker-executor
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "Your unique fingerprint"
+      - run:
+          name: Deploy Docker Image on EC2
+          command: |
+            ssh -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP "
+              command -v docker || { echo "Docker not found, installing..."; sudo yum install -y docker && sudo service docker start; }
+              echo $DOCKER_PASSWORD | sudo docker login --username $DOCKER_USERNAME --password-stdin
+              sudo docker stop \$(sudo docker ps -qa) || true
+              sudo docker rm \$(sudo docker ps -qa) || true
+              sudo docker rmi \$(sudo docker images -qa) || true
+              sudo docker run -d --name $DOCKER_IMAGE_NAME --restart=unless-stopped -p 3000:3000 $DOCKER_IMAGE_NAME
+            "
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - build:
+          context: project-qa-context
+      - deploy:
+          context: project-qa-context
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - qa
