@@ -1,0 +1,118 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    docker:
+      - image: cimg/base:2022.09
+    resource_class: medium
+    working_directory: ~/project
+
+environment:
+  DOCKER_IMAGE_NAME: project_name
+
+jobs:
+  build-demo:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login to DockerHub
+          command: |
+            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+      - run:
+          name: Build Docker Image for Demo
+          command: |
+            docker build -t $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:demo .
+      - run:
+          name: Push Docker Image for Demo
+          command: |
+            docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:demo
+
+  build-qa:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login to DockerHub
+          command: |
+            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+      - run:
+          name: Build Docker Image for QA
+          command: |
+            docker build -t $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:qa .
+      - run:
+          name: Push Docker Image for QA
+          command: |
+            docker push $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:qa
+
+  deploy-demo:
+    executor: docker-executor
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "Your Unique Fingerprint"
+      - run:
+          name: Deploy Docker Image on EC2 (Demo)
+          command: |
+            ssh -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP_DEMO "
+              command -v docker || { echo 'Docker not found, installing...'; sudo yum install -y docker && sudo service docker start; }
+              echo $DOCKER_PASSWORD | sudo docker login --username $DOCKER_USERNAME --password-stdin
+              sudo docker stop \$(sudo docker ps -qa) || true
+              sudo docker rm \$(sudo docker ps -qa) || true
+              sudo docker rmi \$(sudo docker images -qa) || true
+              sudo docker run -d --name $DOCKER_IMAGE_NAME --restart=unless-stopped -p 3000:3000 $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:demo
+            "
+
+  deploy-qa:
+    executor: docker-executor
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "Your Unique Fingerprint"
+      - run:
+          name: Deploy Docker Image on EC2 (QA)
+          command: |
+            ssh -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP_QA "
+              command -v docker || { echo 'Docker not found, installing...'; sudo yum install -y docker && sudo service docker start; }
+              echo $DOCKER_PASSWORD | sudo docker login --username $DOCKER_USERNAME --password-stdin
+              sudo docker stop \$(sudo docker ps -qa) || true
+              sudo docker rm \$(sudo docker ps -qa) || true
+              sudo docker rmi \$(sudo docker images -qa) || true
+              sudo docker run -d --name $DOCKER_IMAGE_NAME --restart=unless-stopped -p 3000:3000 $DOCKER_USERNAME/$DOCKER_IMAGE_NAME:qa
+            "
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - build-demo:
+          context: project-demo-context
+          filters:
+            branches:
+              only:
+                - demo
+      - deploy-demo:
+          context: project-demo-context
+          requires:
+            - build-demo
+          filters:
+            branches:
+              only:
+                - demo
+      - build-qa:
+          context: project-qa-context
+          filters:
+            branches:
+              only:
+                - qa
+      - deploy-qa:
+          context: project-qa-context
+          requires:
+            - build-qa
+          filters:
+            branches:
+              only:
+                - qa
