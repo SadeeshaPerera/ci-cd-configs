@@ -6,6 +6,7 @@ This repository contains the configuration files and scripts to set up a robust 
 
 ```
 ├── circleci              # CircleCI workflows
+├── github-actions        # Github actions workflows
 ├── gitlab-ci             # GitLab CI/CD configurations
 ├── dockerfiles           # Docker-related configurations
 └── README.md             # Documentation
